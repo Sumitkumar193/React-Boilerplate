@@ -31,58 +31,41 @@ export default function Routes({ pages, authenticate = {} }) {
 }
 
 function useRoutes(pages, authenticate = {}) {
-	const routes = Object.keys(pages)
-		.map((key) => {
-			let path = key
-				.replace("./pages", "")
-				.replace(/\.(t|j)sx?$/, "")
-				/**
-				 * Replace /index with /
-				 */
-				.replace(/\/index$/i, "/")
-				/**
-				 * Only lowercase the first letter. This allows the developer to use camelCase
-				 * dynamic paths while ensuring their standard routes are normalized to lowercase.
-				 */
-				.replace(/\b[A-Z]/, (firstLetter) => firstLetter.toLowerCase())
-				/**
-				 * Convert /[handle].jsx and /[...handle].jsx to /:handle.jsx for react-router-dom
-				 */
-				.replace(
-					/\[(?:[.]{3})?(\w+?)\]/g,
-					(_match, param) => `:${param}`
-				);
+  const authKeys = Object.keys(authenticate);
 
-			if (path.endsWith("/") && path !== "/") {
-				path = path.substring(0, path.length - 1);
-			}
+  const routes = Object.keys(pages)
+    .map((key) => {
+      let path = key
+        .replace("./pages", "")
+        .replace(/\.(t|j)sx?$/, "")
+        .replace(/\/index$/i, "/")
+        .replace(/\b[A-Z]/, (firstLetter) => firstLetter.toLowerCase())
+        .replace(/\[(?:[.]{3})?(\w+?)\]/g, (_match, param) => `:${param}`);
 
-			if (!pages[key].default) {
-				console.warn(`${key} doesn't export a default React component`);
-			}
+      if (path.endsWith("/") && path !== "/") {
+        path = path.substring(0, path.length - 1);
+      }
 
-			const route = {
-				path,
-				component: pages[key].default,
-			};
+      if (!pages[key].default) {
+        console.warn(`${key} doesn't export a default React component`);
+      }
 
-			/**
-			 * Authenticate the route
-			 * @desc Check if the route requires authentication and if the user is authenticated.
-			 * @param {object} authenticate An object with keys that match the route path and values that are functions that return a boolean.
-			 */
-			const authKeys = Object.keys(authenticate);
-			for (let authKey of authKeys) {
-				if (path.startsWith('/' + authKey)) {
-					const auth = authenticate[authKey];
-					if (auth === false) {
-						route.component = UnAuthenticated;
-					}
-				}
-			}
-			return route;
-		})
-		.filter((route) => route.component);
+      const route = {
+        path,
+        component: pages[key].default,
+      };
 
-	return routes;
+      const isUnauthenticated = authKeys.some((authKey) => {
+        return path.startsWith('/' + authKey) && authenticate[authKey] === false;
+      });
+
+      if (isUnauthenticated) {
+        route.component = UnAuthenticated;
+      }
+
+      return route;
+    })
+    .filter((route) => route.component);
+
+  return routes;
 }
