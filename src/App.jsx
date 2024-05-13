@@ -1,11 +1,14 @@
+import { BrowserRouter } from "react-router-dom";
 import Router from "./Router";
 import "./styles/App.css";
 
 function App() {
-    const pages = import.meta.glob("./pages/**/*.{jsx,tsx}", { eager: true });
+    const pages = import.meta.glob("./pages/**/!(*.test.[jt]sx)*.([jt]sx)",{ eager: true });
 
     return (
-        <Router pages={pages} />
+        <BrowserRouter>
+            <Router pages={pages} />
+        </BrowserRouter>
     );
 }
 

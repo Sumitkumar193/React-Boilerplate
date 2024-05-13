@@ -1,45 +1,71 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import NotFound from './pages/NotFound';
+import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
+import NotFound from "./pages/NotFound";
 
-export default function router({pages}) {
-    const routes = [];
+/**
+ * File-based routing.
+ * @desc File-based routing that uses React Router under the hood.
+ * To create a new route create a new .jsx file in `/pages` with a default export.
+ *
+ * Some examples:
+ * * `/pages/index.jsx` matches `/`
+ * * `/pages/blog/[id].jsx` matches `/blog/123`
+ * * `/pages/[...catchAll].jsx` matches any URL not explicitly matched
+ *
+ * @param {object} pages value of import.meta.globEager(). See https://vitejs.dev/guide/features.html#glob-import
+ *
+ * @return {Routes} `<Routes/>` from React Router, with a `<Route/>` for each file in `pages`
+ */
+export default function Routes({ pages }) {
+	const routes = useRoutes(pages);
+	const routeComponents = routes.map(({ path, component: Component }) => (
+		<Route key={path} path={path} element={<Component />} />
+	));
 
-    for (const path of Object.keys(pages)) {
-        const fileName = path.match(/\.\/pages\/(.*)\.jsx$/)?.[1];
-        if (!fileName) {
-            continue;
-        }
+	return (
+		<ReactRouterRoutes>
+			{routeComponents}
+			<Route path="*" element={<NotFound />} />
+		</ReactRouterRoutes>
+	);
+}
 
-        const normalizedPathName = fileName.includes("$")
-            ? fileName.replace("$", ":")
-            : fileName.replace(/\/index/, "");
+function useRoutes(pages) {
+	const routes = Object.keys(pages)
+		.map((key) => {
+			let path = key
+				.replace("./pages", "")
+				.replace(/\.(t|j)sx?$/, "")
+				/**
+				 * Replace /index with /
+				 */
+				.replace(/\/index$/i, "/")
+				/**
+				 * Only lowercase the first letter. This allows the developer to use camelCase
+				 * dynamic paths while ensuring their standard routes are normalized to lowercase.
+				 */
+				.replace(/\b[A-Z]/, (firstLetter) => firstLetter.toLowerCase())
+				/**
+				 * Convert /[handle].jsx and /[...handle].jsx to /:handle.jsx for react-router-dom
+				 */
+				.replace(
+					/\[(?:[.]{3})?(\w+?)\]/g,
+					(_match, param) => `:${param}`
+				);
 
-        routes.push({
-            path:
-                fileName === "index"
-                    ? "/"
-                    : `/${normalizedPathName.toLowerCase()}`,
-            Element: pages[path].default,
-            loader: pages[path]?.loader,
-            action: pages[path]?.action,
-            ErrorBoundary: pages[path]?.ErrorBoundary,
-        });
-    }
+			if (path.endsWith("/") && path !== "/") {
+				path = path.substring(0, path.length - 1);
+			}
 
-    routes.push({
-        path: '*',
-        Element: NotFound,
-    });
+			if (!pages[key].default) {
+				console.warn(`${key} doesn't export a default React component`);
+			}
 
-    const router = createBrowserRouter(
-        routes.map(({ Element, ErrorBoundary, ...rest }) => ({
-            ...rest,
-            element: <Element />,
-            ...(ErrorBoundary && { errorElement: <ErrorBoundary /> }),
-        }))
-    );
+			return {
+				path,
+				component: pages[key].default,
+			};
+		})
+		.filter((route) => route.component);
 
-    return (
-        <RouterProvider router={router} />
-    );
+	return routes;
 }
