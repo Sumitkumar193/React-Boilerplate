@@ -75,7 +75,7 @@ function useRoutes(pages, authenticate = {}) {
 			for (let authKey of authKeys) {
 				if (path.startsWith('/' + authKey)) {
 					const auth = authenticate[authKey];
-					if (auth.call() === false) {
+					if (auth === false) {
 						route.component = UnAuthenticated;
 					}
 				}

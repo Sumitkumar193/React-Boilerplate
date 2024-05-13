@@ -1,12 +1,18 @@
 import { BrowserRouter } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Router from "./Router";
 import "./styles/App.css";
 
 function App() {
     const pages = import.meta.glob("./pages/**/!(*.test.[jt]sx)*.([jt]sx)",{ eager: true });
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isUser, setIsUser] = useState(false);
 
-    const isAdmin = () => false;
-    const isUser = () => false;
+    useEffect(() => {
+        // Simulate authentication
+        setIsAdmin(false);
+        setIsUser(true);
+    }, []);
 
     return (
         <BrowserRouter>
