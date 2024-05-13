@@ -1,5 +1,6 @@
 import { Routes as ReactRouterRoutes, Route } from "react-router-dom";
-import NotFound from "./pages/NotFound";
+import NotFound from "./components/NotFound";
+import UnAuthenticated from "./components/UnAuthenticated";
 
 /**
  * File-based routing.
@@ -15,8 +16,8 @@ import NotFound from "./pages/NotFound";
  *
  * @return {Routes} `<Routes/>` from React Router, with a `<Route/>` for each file in `pages`
  */
-export default function Routes({ pages }) {
-	const routes = useRoutes(pages);
+export default function Routes({ pages, authenticate = {} }) {
+	const routes = useRoutes(pages, authenticate);
 	const routeComponents = routes.map(({ path, component: Component }) => (
 		<Route key={path} path={path} element={<Component />} />
 	));
@@ -29,7 +30,7 @@ export default function Routes({ pages }) {
 	);
 }
 
-function useRoutes(pages) {
+function useRoutes(pages, authenticate = {}) {
 	const routes = Object.keys(pages)
 		.map((key) => {
 			let path = key
@@ -60,10 +61,26 @@ function useRoutes(pages) {
 				console.warn(`${key} doesn't export a default React component`);
 			}
 
-			return {
+			const route = {
 				path,
 				component: pages[key].default,
 			};
+
+			/**
+			 * Authenticate the route
+			 * @desc Check if the route requires authentication and if the user is authenticated.
+			 * @param {object} authenticate An object with keys that match the route path and values that are functions that return a boolean.
+			 */
+			const authKeys = Object.keys(authenticate);
+			for (let authKey of authKeys) {
+				if (path.startsWith('/' + authKey)) {
+					const auth = authenticate[authKey];
+					if (auth.call() === false) {
+						route.component = UnAuthenticated;
+					}
+				}
+			}
+			return route;
 		})
 		.filter((route) => route.component);
 
