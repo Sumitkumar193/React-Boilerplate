@@ -11,7 +11,7 @@ function App() {
     useEffect(() => {
         // Simulate authentication
         setIsAdmin(false);
-        setIsUser(true);
+        setIsUser(false);
     }, []);
 
     return (
@@ -19,6 +19,8 @@ function App() {
             <Router pages={pages} authenticate={{
                 admin: isAdmin,
                 user: isUser,
+                "products/create": isAdmin,
+                "products/:id": isUser,
             }} />
         </BrowserRouter>
     );
