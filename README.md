@@ -9,6 +9,7 @@ This project is a boilerplate for React applications. It includes a minimal setu
 - **Zod**: [Zod](https://github.com/colinhacks/zod) is used for schema validation, providing a way to ensure your data matches the expected format.
 - **Folder-based routing**: The project uses folder-based routing for a clear and intuitive routing structure. It also includes support for authenticated routes, protecting certain routes based on user authentication status.
 - **Axios with Interceptor**: Network requests are made using [Axios](https://github.com/axios/axios), a promise-based HTTP client. An interceptor is set up to handle request and response operations, such as adding an authentication token to requests or handling errors globally.
+- **React Toastify**: [React Toastify](https://fkhadra.github.io/react-toastify/introduction) is used for toast notifications, providing an easy way to show messages to users.
 
 ## Getting Started
 
@@ -62,7 +63,7 @@ App.jsx:
 
 By setting `isUser` to `true`, the `/user` route will only be accessible if the `isUser` state variable is `true`.
 
-#### Protect Single Routes
+#### Protection of Single Route
 For protection of single routes in a folder-based routing system, You can pass routes names in the `authenticate` prop of the `Router` component.
 
 ```jsx
@@ -81,6 +82,20 @@ App.jsx:
 <Router pages={pages} authenticate={{
     "products/:id": isUser,
 }} />
+```
+
+
+### Toast Notifications
+
+This project uses the `react-toastify` library to display toast notifications. You can show a toast notification by calling the `toast` function from the `react-toastify` library:
+
+```jsx
+import { toast } from 'react-toastify';
+
+toast('This is a toast notification');
+toast.success('This is a success message');
+toast.error('This is an error message');
+toast.warning('This is a warning message');
 ```
 
 
