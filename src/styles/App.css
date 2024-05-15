@@ -5,6 +5,10 @@
   text-align: center;
 }
 
+.Toastify__toast-body {
+  text-align: start !important;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
