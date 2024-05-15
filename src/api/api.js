@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const baseURL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
 
@@ -17,12 +17,36 @@ api.interceptors.request.use(
     }
 );
 
+const handleError = (error) => {
+    if (error instanceof AxiosError) {
+        const statusCode = error.response?.status;
+        switch (statusCode) {
+            case 401:
+                // Handle 401 error
+                localStorage.removeItem("accessToken");
+                window.location.href = "/";
+                break;
+            case 403:
+                // Handle 403 error
+                window.location.href = "/403";
+                break;
+            case 404:
+                // Handle 404 error
+                window.location.href = "/404";
+                break;
+            default:
+                break;
+        }
+    }
+    return error;
+}
+
 export const get = async (url, data = {}, options = {}) => {
     try {
         const response = await api.get(url, { ...options, params: data });
         return response.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 }
 
@@ -31,7 +55,7 @@ export const post = async (url, data = {}, options = {}) => {
         const response = await api.post(url, data, options);
         return response.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 }
 
@@ -40,7 +64,7 @@ export const put = async (url, data = {}, options = {}) => {
         const response = await api.put(url, data, options);
         return response.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 }
 
@@ -49,6 +73,6 @@ export const destroy = async (url, options = {}) => {
         const response = await api.delete(url, options);
         return response.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 }
